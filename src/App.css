@@ -28,6 +28,47 @@
   color: #61dafb;
 }
 
+.app-container {
+  display: flex;
+}
+
+.content {
+  margin-left: 200px; /* Đẩy nội dung ra khỏi sidebar */
+  padding: 2rem;
+  flex-grow: 1; /* Nội dung chiếm hết không gian còn lại */
+}
+
+.sidebar {
+  width: 180px;
+  height: 100vh; /* Chiều cao 100% của viewport */
+  background-color: #333;
+  color: #fff;
+  position: fixed; /* Ghim sidebar bên trái */
+  top: 0;
+  left: 0;
+  padding: 1rem;
+}
+
+.sidebar-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar-item {
+  margin: 1rem 0;
+}
+
+.sidebar-item a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.2rem;
+}
+
+.sidebar-item a:hover {
+  text-decoration: underline;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -35,4 +76,45 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+table {
+  border-collapse: collapse; /* Removes extra spacing between cells */
+  width: 100%; /* Set the width of the table */
+  background-color: #fff; /* White background */
+  border-radius: 8px; /* Slight rounding on corners */
+  overflow: hidden; /* Ensures rounding works */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* Adds shadow for depth */
+}
+
+/* Table headers */
+thead th {
+  background-color: #4CAF50; /* Green header */
+  color: white;
+  text-align: left;
+  padding: 12px 15px;
+  font-size: 1rem;
+}
+
+/* Table rows */
+tbody td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd; /* Light gray borders */
+  font-size: 0.9rem;
+}
+
+/* Zebra striping effect for rows */
+tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Hover effect for rows */
+tbody tr:hover {
+  background-color: #eaeaea;
+}
+
+/* Add a darker border to the bottom of the table */
+table tfoot td {
+  border-top: 2px solid #4CAF50;
 }
