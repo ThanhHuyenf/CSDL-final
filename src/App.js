@@ -5,6 +5,8 @@ import EmployeePage from './pages/EmployeePage';
 import CompanyDetail from "./pages/CompanyDetail";
 import OfficePage from "./pages/OfficePage";
 import './App.css';
+import ServicePage from "./pages/ServicePage";
+import AccessLogPage from "./pages/AccessLogPage";
 
 const App = () => {
     return (
@@ -21,6 +23,12 @@ const App = () => {
                             <li className="sidebar-item">
                                 <Link to="/employees">Quản lý Nhân viên</Link>
                             </li>
+                            <li className="sidebar-item">
+                                <Link to="/services">Danh sách dịch vụ</Link>
+                            </li>
+                            <li className="sidebar-item">
+                                <Link to="/access-logs">Quản lý ra vào</Link>
+                            </li>
                         </ul>
                     </div>
                     <div className="content">
@@ -30,6 +38,8 @@ const App = () => {
                             <Route path="/offices" element={<OfficePage/>}/>
                             <Route path="/" element={<CompanyPage/>}/> {/* Trang mặc định */}
                             <Route path="/company/:id" element={<CompanyDetail />} />
+                            <Route path="/services" element={<ServicePage />} />
+                            <Route path="/access-logs" element={<AccessLogPage />} />
                         </Routes>
                     </div>
                 </div>
