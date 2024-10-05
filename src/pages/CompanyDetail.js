@@ -14,6 +14,8 @@ const CompanyDetail = () => {
     const [usageService, setUsageService] = useState([]);
     const [modalService, setModalService] = useState(false);
     const [services, setServices] = useState([]);
+    const [checkedServices, setCheckedServices] = useState([]);
+    const [billingMonth, setBillingMonth] = useState("");
     const currentTime = new Date();
 
     const params = useParams();
@@ -73,8 +75,6 @@ const CompanyDetail = () => {
         fetchServices()
 
     }, []);
-
-
 
 
     const addEmployee = async () => {
@@ -140,6 +140,7 @@ const CompanyDetail = () => {
     }
 
     const addService = async () => {
+        setBillingMonth(currentTime.getFullYear() + "-" + (currentTime.getMonth() + 1))
         setModalService(true);
     }
 
@@ -148,8 +149,102 @@ const CompanyDetail = () => {
     }
 
     const handleFormSubmitService = async (e) => {
+        e.preventDefault();
 
+        const temp = checkedServices.map(item => {
+            return {
+                service_id: item._id,
+                service_name: item.service_name,
+                service_type: item.service_type,
+                base_price: item.base_price,
+                usage_date: currentTime.getFullYear() + "-" + (currentTime.getMonth() + 1) + "-" + currentTime.getDate()
+            }
+        })
+
+
+
+        const data = {
+            company_id: params.id,
+            billing_month : billingMonth,
+            services: temp
+        }
+        // console.log("data", data)
+
+        const result = await axios.post('http://localhost:8000/api/usage_service', data);
+        if (result) {
+            fetchUsageService()
+            closeModalService()
+        }
     }
+
+    const handleCheckboxChange = (event) => {
+        const service = JSON.parse(event.target.value); // Parse the JSON string back to an object
+
+        if (event.target.checked) {
+            setCheckedServices((prevChecked) => [...prevChecked, service]);
+        } else {
+            setCheckedServices((prevChecked) => prevChecked.filter(item => item._id !== service._id));
+        }
+    };
+
+    const deleteService = async (item) => {
+        const data = {
+            company_id: params.id,
+            billing_month : item.billing_month,
+        }
+        const result = await axios.post('http://localhost:8000/api/usage_service/delete/'+ item._id);
+        if (result) {
+            fetchUsageService()
+        }
+    }
+
+    const initService = async () => {
+        const data = {
+            company_id: params.id,
+            billing_month : currentTime.getFullYear() + "-" + (currentTime.getMonth() + 1),
+            payment_status: "unpaid",
+            payment_date: "",
+            payment_method: "bank_transfer",
+            services: []
+        }
+        const result = await axios.post('http://localhost:8000/api/usage_service/init', data);
+        if (result) {
+            fetchUsageService()
+        }
+    }
+
+    function calculateServiceCost(basePrice, start_date) {
+        let price = basePrice;
+        let numEmployees = activeEmployeesCount
+        let area = companyInfo.building_info.office_area
+
+        //calculate daysUsed = now- start_date
+        const start = new Date(start_date);
+        const end = new Date();
+        const totalDaysInMonth = new Date(end.getFullYear(), end.getMonth() + 1, 0).getDate();
+        const daysUsed = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+
+        // Calculate price adjustment based on number of employees and area
+        if (numEmployees >= 10 || area >= 100) {
+            const increaseForEmployees = Math.floor((numEmployees - 10) / 5);
+            const increaseForArea = Math.floor((area - 100) / 10);
+            const totalIncrease = increaseForEmployees + increaseForArea;
+
+            // Adjust the price based on increases
+            price *= Math.pow(1.05, totalIncrease);
+        }
+
+        // Calculate service cost based on usage days
+        const serviceCost = price * (daysUsed / totalDaysInMonth);
+
+        return {
+            price: price.toFixed(2), // Price per service
+            serviceCost: serviceCost.toFixed(2) // Total cost for the period
+        };
+    }
+
+
     return (
         <div>
             <h1>Chi tiết công ty </h1>
@@ -161,24 +256,39 @@ const CompanyDetail = () => {
                 <p>Ngành nghề: {companyInfo.industry}</p>
                 <p>Người phụ trách: {companyInfo.representative}</p>
                 <p>Số điện thoại: {companyInfo.phone_number}</p>
+                <p>Total renting fee: {companyInfo.rent}</p>
             </div>
 
             <div>
                 <p>Lịch sử thanh toán tiền dịch vụ</p>
-                <div className="fee-container">
+                <button onClick={initService}>Add service</button>
+                <div className="fee-container" style={{marginTop: "20px"}}>
                     {usageService.map((item) => (
                         <div key={item._id} className="fee">
-                            {checkCurrentMonth(item.billing_month) && <button onClick={()=>addService()}>Add sevice</button>}
+                            {checkCurrentMonth(item.billing_month) &&
+                                <div style={{display:"flex", justifyContent: "space-between"}}>
+                                    <button onClick={() => addService()}>Add sevice</button>
+                                    <button onClick={()=> deleteService(item)}>Delete</button>
+                                </div>
+                            }
                             <p>Time: {item.billing_month}</p>
                             <p>Status: {item.payment_status}</p>
                             <p>Payment date: {item.payment_date || '-'}</p>
                             <p>Payment method: {item.payment_method}</p>
-                            <p>Services usage: Start date- Service - Base price</p>
+                            <p>Services usage: Start date- Service - Base price - Price - Cost to now</p>
                             {item.services.map((service) => (
                                 <div key={service.service_id}>
-                                    <p> - {service.usage_date} - {service.service_name} : {service.base_price.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
+                                    <p> - {service.usage_date}
+                                        - {service.service_name} :
+                                        {service.base_price.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                        - {calculateServiceCost(service.base_price, service.usage_date).price}
+                                        - {calculateServiceCost(service.base_price, service.usage_date).serviceCost}
+                                    </p>
                                 </div>
                             ))}
+
+                            <p>Total price: {item.services.reduce((acc, service) => acc + parseFloat(calculateServiceCost(service.base_price, service.usage_date).price), 0).toFixed(2)}</p>
+                            <p>Total cost to now: {item.services.reduce((acc, service) => acc + parseFloat(calculateServiceCost(service.base_price, service.usage_date).serviceCost), 0).toFixed(2)}</p>
                         </div>
                     ))}
                 </div>
@@ -306,7 +416,8 @@ const CompanyDetail = () => {
                                     <input
                                         type="checkbox"
                                         name={service._id}
-                                        value={service._id}
+                                        value={JSON.stringify(service)}
+                                        onChange={handleCheckboxChange}
                                     />
 
                                 </label>

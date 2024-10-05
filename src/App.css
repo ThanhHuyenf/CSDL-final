@@ -194,15 +194,18 @@ button:hover {
 }
 
 .fee-container{
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
+  display: flex;               /* Use Flexbox layout */
+  flex-wrap: wrap;            /* Allow items to wrap to the next line if necessary */
+  justify-content: space-between; /* Distribute space between items */
+  margin: -10px;
 }
 
 .fee{
-  width: 33%;
+  flex: 1 0 calc(33.333% - 20px); /* Each item takes up approximately 1/3 of the width minus margin */
+  margin: 10px;               /* Add margin around each item */
+  box-sizing: border-box;
     padding: 10px;
-    border: 1px solid #ccc;
+  border: 1px solid #ccc;
     border-radius: 4px;
 }
 
